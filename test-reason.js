@@ -2,6 +2,10 @@ r = require("./reason.js");
 run = require("./runtests.js");
 assert = require("assert");
 
+// create some fresh variables for use in tests
+x = r.fresh("x");
+y = r.fresh("y");
+
 run([
 
     function a_new_substitution_should_be_empty(){
@@ -11,13 +15,12 @@ run([
 
     function a_substitution_can_be_extended_with_a_new_association(){
         var s = r.newSub();
-        s.extend(r.fresh("x"), "foo");
+        s.extend(x, "foo");
         assert(!s.isEmpty(), "failed to extend substitution");
     },
 
     function a_variables_association_can_be_retrieved_from_a_substitution(){
         var s = r.newSub();
-        var x = r.fresh("x");
         s.extend(x, "foo");
         var result = s.lookup(x);
         assert.equal(result, "foo", "failed to lookup association");
@@ -25,8 +28,6 @@ run([
 
     function a_substitution_can_be_reified(){
         var s = r.newSub();
-        var x = r.fresh("x");
-        var y = r.fresh("y");
         s.extend(x, "foo");
         s.extend(y, "bar");
         var reification = s.reify();
