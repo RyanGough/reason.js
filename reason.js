@@ -35,7 +35,23 @@ function isFresh(variable){
     return typeof variable === 'symbol';
 }
 
+function isFail(stream){
+    return stream.length === 0;
+}
+
 function unify(x, y, s){
+    if (Array.isArray(x) && Array.isArray(y)){
+        if (x.length === 0 && y.length === 0){
+            return success(s);
+        }
+        var [xHead, ...xTail] = x;
+        var [yHead, ...yTail] = y;
+        var headResult = unify(xHead, yHead, s);
+        if (isFail(headResult)){
+            return fail();
+        }
+        return unify(xTail, yTail, headResult[0]);
+    }
     var xLookup = s.lookup(x);
     var yLookup = s.lookup(y);
     if (isFresh(xLookup)){
