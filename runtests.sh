@@ -1,1 +1,1 @@
-node --harmony_destructuring test-reason.js
+node --harmony_destructuring $1
