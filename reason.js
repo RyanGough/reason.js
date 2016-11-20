@@ -1,3 +1,5 @@
+var plist = require("./plist.js");
+
 /* 
  * substitutions and logic variables
  */
@@ -5,22 +7,19 @@
 function newSub(){
     return {
         assoc: {},
-        isEmpty: function(){
-            return Object.getOwnPropertySymbols(this.assoc).length === 0;
-        },
         lookup: function(variable){
+            if (!isLogicVar(variable)){
+                return variable;
+            }
             if (!this.assoc.hasOwnProperty(variable)){
                 return variable;
             }
-            return this.assoc[variable];
-        },
-        reify: function(){
-            var me = this;
-            var vars = Object.getOwnPropertySymbols(this.assoc);
-            return vars.reduce(function(a,i){
-                a.push(i.toString() + ":" + me.lookup(i));
-                return a;
-            },[]).join(", "); 
+            var res = this.assoc[variable];
+            if (isLogicVar(res)){
+                return this.lookup(res);
+            } else {
+                return res;
+            }
         },
         extend: function(variable, value){
             var subE = newSub();
@@ -28,19 +27,14 @@ function newSub(){
             subE.assoc[variable] = value;
             return subE;
         },
-        cloneWithout: function(x){
-            var clone = newSub();
-            clone.assoc = this.assoc.cloneWithout(x);
-            return clone;
-        }
     }
 };
 
-function fresh(desc){
-    return Symbol(desc);
+function fresh(){
+    return Symbol();
 };
 
-function isFresh(variable){
+function isLogicVar(variable){
     return typeof variable === 'symbol';
 }
 
@@ -68,100 +62,55 @@ function succeeded(stream){
  * unification
  */
 
-function unifyArray(x, y, s){
-    if (x.length === 0 && y.length === 0){
-        return success(s);
-    }
-    var [xHead, ...xTail] = x;
-    var [yHead, ...yTail] = y;
-    var headResult = unify(xHead, yHead, s);
-    if (failed(headResult)){
-        return fail();
-    }
-    return unify(xTail, yTail, headResult[0]);
-}
-
-function unifyObject(x, y, s){
-    var xKeys = Object.keys(x);
-    var yKeys = Object.keys(y);
-    if (xKeys.length !== yKeys.length){
-        return fail();
-    }
-    if (xKeys.length === 0 && yKeys.length === 0){
-        return success(s);
-    }
-    if (xKeys[0] !== yKeys[0]){
-        return fail();
-    }
-    var propName = xKeys[0];
-    var headResult = unify(x[propName], y[propName], s);
-    if (failed(headResult)){
-        return fail();
-    }
-    return unify(x.cloneWithout(propName), y.cloneWithout(propName), headResult[0]);
-}
-
-function unifyPrimitive(x, y, s){
+function unify(x, y, s){
     var xLookup = s.lookup(x);
     var yLookup = s.lookup(y);
-    if (isFresh(xLookup)){
-        return success(s.extend(xLookup, yLookup));
-    }
-    if (isFresh(yLookup)){
-        return success(s.extend(yLookup, xLookup));
-    }
     if (xLookup === yLookup){
         return success(s);
     }
+    if (isLogicVar(xLookup)){
+        return success(s.extend(xLookup, yLookup));
+    }
+    if (isLogicVar(yLookup)){
+        return success(s.extend(yLookup, xLookup));
+    }
+    if (plist.isProper(xLookup) && plist.isProper(yLookup)){
+        var headResult = unify(xLookup.head, yLookup.head, s);
+        if (failed(headResult)){
+            return fail();
+        }
+        return unify(xLookup.tail, yLookup.tail, headResult[0]);
+    }
     return fail();
-}
-
-function unify(x, y, s){
-    if (bothArrays(x,y)){
-        return unifyArray(x, y, s);
-    }
-    if (bothObjects(x,y)){
-        return unifyObject(x, y, s);
-    }
-    return unifyPrimitive(x, y, s);
 };
 
 /* 
  * more goals 
  */
 
-function heado(x, l, s){
-    if (isFresh(l)){
-        return unfiy(x, [l], s);
-    }
-    var [head, ...tail] = l;
-    return unify(x, head, s);
-}
-
-function tailo(x, l, s){
-    if (isFresh(l)){
-        return unfiy(x, [l], s);
-    }
-    var [head, ...tail] = l;
-    return unify(x, tail, s);
-}
-
 function nullo(x, s){
-    return unify(x, [], s)
+    return unify(x, plist.emptyList, s);
 }
 
-function membero(x, l, s){
-    var nullResult = nullo(l, s);
-    if (succeeded(nullResult)){
-        return fail();
-    }
-    var headResult = heado(x, l, s);
-    var remain = fresh("");
-    var remainResult = tailo(remain, l, newSub());
-    var tail = remainResult[0].lookup(remain);
-    return headResult.concat(membero(x, tail, s.cloneWithout(x)));
+function conso(h, t, p, s){
+    return unify(plist.cons(h, t), p, s);
 }
 
+function pairo(p, s){
+    return conso(r.fresh(), r.fresh(), p, s);
+}
+
+function heado(l, x, s){
+    var headoFresh = fresh();
+    var headoList = plist.cons(x, headoFresh);
+    return unify(headoList, l, s);
+}
+
+function tailo(l, x, s){
+    var tailoFresh = fresh();
+    var tailoList = plist.cons(tailoFresh, x);
+    return unify(tailoList, l, s);
+}
 
 /* 
  * export the module interface
@@ -171,10 +120,11 @@ module.exports = {
     newSub: newSub,
     fresh: fresh,
     unify: unify,
+    nullo: nullo,
+    conso: conso,
+    pairo: pairo,
     heado: heado,
     tailo: tailo,
-    nullo: nullo,
-    membero: membero
 };
 
 /* 
@@ -189,13 +139,10 @@ function bothObjects(x, y){
     return isObject(x) && isObject(y);
 }
 
+function isArray(x){
+    return Array.isArray(x);
+}
+
 function bothArrays(x, y){
-    return (Array.isArray(x) && Array.isArray(y));
+    return (isArray(x) && isArray(y));
 }
-
-Object.prototype.cloneWithout = function(key){
-    var clone = Object.assign({}, this);
-    delete clone[key];
-    return clone;
-}
-

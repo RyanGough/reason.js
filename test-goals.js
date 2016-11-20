@@ -1,79 +1,70 @@
 r = require("./reason.js");
+plist = require("./plist.js");
 run = require("./testrunner.js");
 assert = require("assert");
 
 // create some fresh variables for use in tests
-x = r.fresh("x");
-y = r.fresh("y");
+x = r.fresh();
+y = r.fresh();
 
 run([
-    function test_heado_unifies_fresh_var_with_head_of_list(){
+    function nullo_unifies_fresh_var_with_empty_list(){
         var s = r.newSub();
-        var substream = r.heado(x, [1, 2, 3], s);
-        assert.equal(substream[0].lookup(x), 1, "heado failed to unify head of list with fresh var");
+        var res = r.nullo(x, s);
+        assert.equal(res[0].lookup(x), plist.emptyList);
     },
 
-    function test_heado_unifies_matching_value_with_head_of_list(){
+    function conso_unifies_a_pair_from_a_given_head_and_tail(){
         var s = r.newSub();
-        var substream = r.heado(1, [1, 2, 3], s);
-        assert.equal(substream[0], s, "heado failed to unify head of list with matching value");
+        var res = r.conso(x, "bar", plist.cons("foo", "bar"), s);
+        assert.equal(res[0].lookup(x), "foo");
     },
 
-    function test_heado_fails_to_unify_fresh_var_with_empty_list(){
+    function pairo_fails_if_not_given_a_pair(){
         var s = r.newSub();
-        var substream = r.heado(1, [], s);
-        assert.equal(substream.length, 0, "heado unified with empty list");
+        var res = r.pairo("foo", s);
+        assert.equal(res.length, 0);
     },
 
-    function test_heado_fails_to_non_matching_var_with_head_of_list(){
+    function pairo_create_a_pair_with_a_fresh_head_and_tail(){
         var s = r.newSub();
-        var substream = r.heado(1, [2], s);
-        assert.equal(substream.length, 0, "heado unified with empty list");
+        var res = r.pairo(x, s);
+        assert.equal(plist.toString(res[0].lookup(x)), "(Symbol(), Symbol())");
     },
 
-    function test_tailo_unfies_fresh_var_with_tail_of_list(){
+
+    function heado_can_grab_the_head_of_a_list(){
         var s = r.newSub();
-        var substream = r.tailo(x, [1, 2, 3], s);
-        assert.equal(substream[0].lookup(x)[0], 2, "heado failed to unify tail of list with fresh var 1");
-        assert.equal(substream[0].lookup(x)[1], 3, "heado failed to unify tail of list with fresh var 2");
+        var res = r.heado(plist.properList(["foo"]), x, s);
+        assert.equal(res[0].lookup(x), "foo");
     },
 
-    function test_tailo_unfies_matching_value_with_tail_of_list(){
+    function heado_can_create_a_list_with_a_given_head(){
         var s = r.newSub();
-        var substream = r.tailo([2,3], [1, 2, 3], s);
-        assert.equal(substream[0], s, "heado failed to unify tail of list with matching value");
+        var res = r.heado(x, "foo", s);
+        assert.equal(plist.toString(res[0].lookup(x)), "(foo, Symbol())");
     },
 
-    function test_nullo_unifies_fresh_var_with_empty_list(){
+    function tailo_can_grab_the_tail_of_a_list(){
         var s = r.newSub();
-        var substream = r.nullo(x, s);
-        assert.equal(substream[0].lookup(x).length, 0, "nullo failed to unify fresh var with empty list");
+        var res = r.tailo(plist.properList(["foo", "bar"]), x, s);
+        assert.equal(res[0].lookup(x).head, "bar");
+        assert.equal(res[0].lookup(x).tail, plist.emptyList);
     },
 
-    function test_nullo_unifies_empty_list_with_empty_list(){
+    function tailo_can_create_a_list_with_a_given_tail(){
         var s = r.newSub();
-        var substream = r.nullo([], s);
-        assert.equal(substream[0], s, "nullo failed to unify empty list with empty list");
+        var expectedTail = plist.properList(["foo"]);
+        var res = r.tailo(x, expectedTail, s);
+        assert.equal(res[0].lookup(x).head.toString(), "Symbol()");
+        assert.equal(res[0].lookup(x).tail, expectedTail);
     },
 
-    function test_nullo_fails_to_unify_non_empty_list_with_empty_list(){
+    function nullo_succeeds_given_empty_list(){
         var s = r.newSub();
-        var substream = r.nullo([1], s);
-        assert.equal(substream.length, 0, "nullo unifed non empty list with empty list");
+        var list = plist.properList(["foo"]);
+        var res = r.nullo(list.tail, s);
+        assert.equal(res[0], s);
     },
 
-    function test_membero_unfies_fresh_var_with_both_members_of_a_list(){
-        var s = r.newSub();
-        var substream = r.membero(x, ["foo", "bar"], s);
-        assert.equal(substream[0].lookup(x), "foo", "membero failed to unify fresh var with first memeber");
-        assert.equal(substream[1].lookup(x), "bar", "membero failed to unify fresh var with second member");
-    },
-
-    //function test_wibble(){
-    //    var s = r.newSub();
-    //    var substream = r.membero("foo", x, s);
-    //    debugger;
-    //    assert.equal(substream.length, 1);
-    //}
-
-])
+]);
