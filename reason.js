@@ -1,7 +1,16 @@
-var plist = require("./plist.js");
+var list = require("./list.js");
+
+/*
+ * fresh variables
+ */
+
+var reason_script_fresh_counter = 0;
+function fresh(){
+    return Symbol((reason_script_fresh_counter++).toString());
+};
 
 /* 
- * substitutions and logic variables
+ * substitution
  */
 
 function newSub(){
@@ -22,17 +31,25 @@ function newSub(){
             }
         },
         extend: function(variable, value){
-            var subE = newSub();
-            Object.assign(subE.assoc, this.assoc);
-            subE.assoc[variable] = value;
-            return subE;
+            var extendedSub = newSub();
+            Object.assign(extendedSub.assoc, this.assoc);
+            extendedSub.assoc[variable] = value;
+            return extendedSub;
         },
+        reify: function(variable){
+            var lookup = this.lookup(x);
+            if (list.isList(lookup)){
+                return "(" + this.reify(lookup.head) + ", " + this.reify(lookup.tail) + ")";
+            }
+            if (lookup === null){
+                return "null";
+            }
+            return lookup.toString();
+        }
+
     }
 };
 
-function fresh(){
-    return Symbol();
-};
 
 function isLogicVar(variable){
     return typeof variable === 'symbol';
@@ -74,7 +91,7 @@ function unify(x, y, s){
     if (isLogicVar(yLookup)){
         return success(s.extend(yLookup, xLookup));
     }
-    if (plist.isProper(xLookup) && plist.isProper(yLookup)){
+    if (list.isList(xLookup) && list.isList(yLookup)){
         var headResult = unify(xLookup.head, yLookup.head, s);
         if (failed(headResult)){
             return fail();
@@ -89,28 +106,60 @@ function unify(x, y, s){
  */
 
 function nullo(x, s){
-    return unify(x, plist.emptyList, s);
+    return unify(x, list.emptyList, s);
 }
 
 function conso(h, t, p, s){
-    return unify(plist.cons(h, t), p, s);
+    return unify(list.cons(h, t), p, s);
 }
 
 function pairo(p, s){
-    return conso(r.fresh(), r.fresh(), p, s);
+    return conso(fresh(), fresh(), p, s);
 }
 
 function heado(l, x, s){
     var headoFresh = fresh();
-    var headoList = plist.cons(x, headoFresh);
+    var headoList = list.cons(x, headoFresh);
     return unify(headoList, l, s);
 }
 
 function tailo(l, x, s){
     var tailoFresh = fresh();
-    var tailoList = plist.cons(tailoFresh, x);
+    var tailoList = list.cons(tailoFresh, x);
     return unify(tailoList, l, s);
 }
+
+
+/*
+ * goals that can return multiple values
+ */
+
+function run(g, limit){
+    var results = [];
+    while (limit--){
+        var r = g.next();
+        results.push(r.value[0]);
+        if (r.done){
+            break;
+        }
+    }
+    return results;
+}
+
+function* listo(l, s){
+    var nullRes = nullo(l, s);
+    if (succeeded(nullRes)){
+        yield nullRes;
+    }
+    var headRes = pairo(l, s);
+    if (succeeded(headRes)){
+        var tail = fresh();
+        var tailRes = tailo(l, tail, headRes[0]);
+        yield * listo(tail, tailRes[0]);
+    }
+    return fail();
+}
+
 
 /* 
  * export the module interface
@@ -125,6 +174,8 @@ module.exports = {
     pairo: pairo,
     heado: heado,
     tailo: tailo,
+    listo: listo,
+    run: run
 };
 
 /* 

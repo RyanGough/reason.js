@@ -1,11 +1,11 @@
-r = require("./reason.js");
-plist = require("./plist.js");
-run = require("./testrunner.js");
-assert = require("assert");
+var r = require("./reason.js");
+var list = require("./list.js");
+var run = require("./testrunner.js");
+var assert = require("assert");
 
 // create some fresh variables for use in tests
-x1 = r.fresh();
-x2 = r.fresh();
+var x1 = r.fresh();
+var x2 = r.fresh();
 
 run([
     function can_unify_fresh_var_with_value(){
@@ -29,8 +29,7 @@ run([
 
     function can_unify_proper_list(){
         var s = r.newSub();
-        debugger;
-        var res = r.unify(plist.properList([x2,"foo"]),plist.properList(["bar", x1]),s);
+        var res = r.unify(list.createList([x2,"foo"]),list.createList(["bar", x1]),s);
         assert.equal(res[0].lookup(x1), "foo");
         assert.equal(res[0].lookup(x2), "bar");
     }

@@ -7,15 +7,15 @@ function cons(a,b){
     };
 }
 
-function properList(list){
+function createList(list){
     var [head,...tail] = list;
     if (tail.length === 0){
         return cons(head, emptyList);
     }
-    return cons(head, properList(tail));
+    return cons(head, createList(tail));
 }
 
-function isProper(list){
+function isList(list){
     if (!list){
         return false;
     }
@@ -28,7 +28,7 @@ function listItems(list, items){
         return items;
     }
     items.push(list.head.toString());
-    if (!isProper(list.tail)){
+    if (!isList(list.tail)){
         items.push(list.tail.toString());
         return items;
     }
@@ -40,9 +40,9 @@ function toString(list){
 }
 
 module.exports = {
-    properList: properList,
+    createList: createList,
     cons: cons,
-    isProper: isProper,
+    isList: isList,
     toString: toString,
     emptyList: emptyList
 }
