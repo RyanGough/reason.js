@@ -1,6 +1,6 @@
 const emptyList = {head: null, tail: null};
 
-function cons(a,b){
+function pair(a,b){
     return {
         head: a,
         tail: b
@@ -10,12 +10,12 @@ function cons(a,b){
 function createList(list){
     var [head,...tail] = list;
     if (tail.length === 0){
-        return cons(head, emptyList);
+        return pair(head, emptyList);
     }
-    return cons(head, createList(tail));
+    return pair(head, createList(tail));
 }
 
-function isList(list){
+function isPair(list){
     if (!list){
         return false;
     }
@@ -28,7 +28,7 @@ function listItems(list, items){
         return items;
     }
     items.push(list.head.toString());
-    if (!isList(list.tail)){
+    if (!isPair(list.tail)){
         items.push(list.tail.toString());
         return items;
     }
@@ -41,8 +41,8 @@ function toString(list){
 
 module.exports = {
     createList: createList,
-    cons: cons,
-    isList: isList,
+    pair: pair,
+    isPair: isPair,
     toString: toString,
     emptyList: emptyList
 }

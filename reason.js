@@ -13,7 +13,7 @@ function fresh(){
  * substitution
  */
 
-function newSub(){
+function emptySub(){
     return {
         assoc: {},
         lookup: function(variable){
@@ -31,14 +31,14 @@ function newSub(){
             }
         },
         extend: function(variable, value){
-            var extendedSub = newSub();
+            var extendedSub = emptySub();
             Object.assign(extendedSub.assoc, this.assoc);
             extendedSub.assoc[variable] = value;
             return extendedSub;
         },
         reify: function(variable){
             var lookup = this.lookup(x);
-            if (list.isList(lookup)){
+            if (list.isPair(lookup)){
                 return "(" + this.reify(lookup.head) + ", " + this.reify(lookup.tail) + ")";
             }
             if (lookup === null){
@@ -91,7 +91,7 @@ function unify(x, y, s){
     if (isLogicVar(yLookup)){
         return success(s.extend(yLookup, xLookup));
     }
-    if (list.isList(xLookup) && list.isList(yLookup)){
+    if (list.isPair(xLookup) && list.isPair(yLookup)){
         var headResult = unify(xLookup.head, yLookup.head, s);
         if (failed(headResult)){
             return fail();
@@ -110,7 +110,7 @@ function nullo(x, s){
 }
 
 function conso(h, t, p, s){
-    return unify(list.cons(h, t), p, s);
+    return unify(list.pair(h, t), p, s);
 }
 
 function pairo(p, s){
@@ -119,13 +119,13 @@ function pairo(p, s){
 
 function heado(l, x, s){
     var headoFresh = fresh();
-    var headoList = list.cons(x, headoFresh);
+    var headoList = list.pair(x, headoFresh);
     return unify(headoList, l, s);
 }
 
 function tailo(l, x, s){
     var tailoFresh = fresh();
-    var tailoList = list.cons(tailoFresh, x);
+    var tailoList = list.pair(tailoFresh, x);
     return unify(tailoList, l, s);
 }
 
@@ -166,7 +166,7 @@ function* listo(l, s){
  */
 
 module.exports = {
-    newSub: newSub,
+    emptySub: emptySub,
     fresh: fresh,
     unify: unify,
     nullo: nullo,
