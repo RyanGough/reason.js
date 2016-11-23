@@ -1,59 +1,9 @@
 var list = require("./list.js");
+var subs = require("./subs.js");
 
-/*
- * fresh variables
- */
-
-var reason_script_fresh_counter = 0;
-function fresh(){
-    return Symbol((reason_script_fresh_counter++).toString());
-};
-
-/* 
- * substitution
- */
-
-function emptySub(){
-    return {
-        assoc: {},
-        lookup: function(variable){
-            if (!isLogicVar(variable)){
-                return variable;
-            }
-            if (!this.assoc.hasOwnProperty(variable)){
-                return variable;
-            }
-            var res = this.assoc[variable];
-            if (isLogicVar(res)){
-                return this.lookup(res);
-            } else {
-                return res;
-            }
-        },
-        extend: function(variable, value){
-            var extendedSub = emptySub();
-            Object.assign(extendedSub.assoc, this.assoc);
-            extendedSub.assoc[variable] = value;
-            return extendedSub;
-        },
-        reify: function(variable){
-            var lookup = this.lookup(x);
-            if (list.isPair(lookup)){
-                return "(" + this.reify(lookup.head) + ", " + this.reify(lookup.tail) + ")";
-            }
-            if (lookup === null){
-                return "null";
-            }
-            return lookup.toString();
-        }
-
-    }
-};
-
-
-function isLogicVar(variable){
-    return typeof variable === 'symbol';
-}
+// for convenience
+var fresh = subs.fresh;
+var isLogicVar = subs.isLogicVar;
 
 /* 
  * basic goals
@@ -134,18 +84,6 @@ function tailo(l, x, s){
  * goals that can return multiple values
  */
 
-function run(g, limit){
-    var results = [];
-    while (limit--){
-        var r = g.next();
-        results.push(r.value[0]);
-        if (r.done){
-            break;
-        }
-    }
-    return results;
-}
-
 function* listo(l, s){
     var nullRes = nullo(l, s);
     if (succeeded(nullRes)){
@@ -160,14 +98,29 @@ function* listo(l, s){
     return fail();
 }
 
+/*
+ * run a goal that is a generator
+ */
+
+function run(g, limit){
+    var results = [];
+    while (limit--){
+        var r = g.next();
+        results.push(r.value[0]);
+        if (r.done){
+            break;
+        }
+    }
+    return results;
+}
+
+
 
 /* 
  * export the module interface
  */
 
 module.exports = {
-    emptySub: emptySub,
-    fresh: fresh,
     unify: unify,
     nullo: nullo,
     conso: conso,
