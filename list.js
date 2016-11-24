@@ -7,19 +7,20 @@ function pair(a,b){
     };
 }
 
+function isPair(list){
+    if (!list){
+        return false;
+    }
+    return list.hasOwnProperty("head") && list.hasOwnProperty("tail");
+}
+
+
 function createList(list){
     var [head,...tail] = list;
     if (tail.length === 0){
         return pair(head, emptyList);
     }
     return pair(head, createList(tail));
-}
-
-function isPair(list){
-    if (!list){
-        return false;
-    }
-    return list.hasOwnProperty("head") && list.hasOwnProperty("tail");
 }
 
 function listItems(list, items){
@@ -40,9 +41,9 @@ function toString(list){
 }
 
 module.exports = {
-    createList: createList,
     pair: pair,
     isPair: isPair,
+    createList: createList,
     toString: toString,
     emptyList: emptyList
 }

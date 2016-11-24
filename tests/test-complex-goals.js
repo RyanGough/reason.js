@@ -12,34 +12,27 @@ var y = fresh();
 
 run([
 
-    function listo_succeeds_if_given_a_proper_list(){
-        var s = emptySub();
-        var goal = r.listo(list.createList([1,2,3]), s);
-        var res = r.run(goal, 1);
-        assert.equal(res.length, 1);
-    },
-
-    function listo_works_with_vars_in_list(){
-        var s = emptySub();
-        var goal = r.listo(list.createList([1,2,x,4]), s);
-        var res = r.run(goal, 1);
-        assert.equal(typeof res[0].lookup(x), "symbol");
-    },
-
     function listo_can_return_multiple_values_when_tail_of_given_list_is_fresh(){
         var s = emptySub();
-        var goal = r.listo(list.pair("foo", x), s);
-        var res = r.run(goal, 5);
-        assert(res.length, 0);
+        var goal = r.listo(list.pair("foo", x));
+        var stream = goal(s);
+        var res = stream.next().value;
+        assert.equal(res.lookup(x), list.emptyList);
+        var res2 = stream.next().value;
+        assert.equal(typeof res2.lookup(x).head, "symbol");
+        assert.equal(res.lookup(x).tail, s.emptyList);
     },
 
     function disj_returns_the_disjunction_of_the_goals(){
         var s = emptySub();
-        var goal1 = r.conso(x, "bar", list.pair("foo", "bar"), s);
-        var goal2 = r.heado(y, list.pair("foo", "bar"), s);
+        var goal1 = r.conso(x, "bar", list.pair("foo", "bar"));
+        var goal2 = r.heado(list.pair("foo", "bar"), y);
         var disjGoal = r.disj(goal1, goal2);
-        var res = r.run(disjGoal, 2);
-        assert(res.length, 2);
+        var stream = disjGoal(s);
+        var res = stream.next().value;
+        assert.equal(res.lookup(x), "foo");
+        var res2 = stream.next().value;
+        assert.equal(res2.lookup(y), "foo");
     }
 
 ]);
