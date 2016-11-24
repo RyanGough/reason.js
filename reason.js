@@ -6,26 +6,6 @@ var fresh = subs.fresh;
 var isLogicVar = subs.isLogicVar;
 
 /* 
- * basic goals
- */
-
-function success(s){
-    return [s];
-};
-
-function fail(){
-    return [];
-};
-
-function failed(stream){
-    return stream.length === 0;
-}
-
-function succeeded(stream){
-    return stream.length > 0;
-}
-
-/* 
  * unification
  */
 
@@ -33,22 +13,22 @@ function unify(x, y, s){
     var xLookup = s.lookup(x);
     var yLookup = s.lookup(y);
     if (xLookup === yLookup){
-        return success(s);
+        return s;
     }
     if (isLogicVar(xLookup)){
-        return success(s.extend(xLookup, yLookup));
+        return s.extend(xLookup, yLookup);
     }
     if (isLogicVar(yLookup)){
-        return success(s.extend(yLookup, xLookup));
+        return s.extend(yLookup, xLookup);
     }
     if (list.isPair(xLookup) && list.isPair(yLookup)){
         var headResult = unify(xLookup.head, yLookup.head, s);
-        if (failed(headResult)){
-            return fail();
+        if (headResult === null){
+            return null;
         }
-        return unify(xLookup.tail, yLookup.tail, headResult[0]);
+        return unify(xLookup.tail, yLookup.tail, headResult);
     }
-    return fail();
+    return null;
 };
 
 /* 
@@ -86,16 +66,16 @@ function tailo(l, x, s){
 
 function* listo(l, s){
     var nullRes = nullo(l, s);
-    if (succeeded(nullRes)){
+    if (nullRes){
         yield nullRes;
     }
     var headRes = pairo(l, s);
-    if (succeeded(headRes)){
+    if (headRes){
         var tail = fresh();
-        var tailRes = tailo(l, tail, headRes[0]);
-        yield * listo(tail, tailRes[0]);
+        var tailRes = tailo(l, tail, headRes);
+        yield * listo(tail, tailRes);
     }
-    return fail();
+    return null;
 }
 
 /*
@@ -106,7 +86,7 @@ function run(g, limit){
     var results = [];
     while (limit--){
         var r = g.next();
-        results.push(r.value[0]);
+        results.push(r.value);
         if (r.done){
             break;
         }
