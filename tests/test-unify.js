@@ -1,6 +1,6 @@
-var list = require("./list.js");
-var subs = require("./subs.js");
-var r = require("./reason.js");
+var list = require("../list.js");
+var subs = require("../subs.js");
+var r = require("../reason.js");
 var run = require("./testrunner.js");
 var assert = require("assert");
 
