@@ -33,6 +33,27 @@ run([
         assert.equal(res.lookup(x), "foo");
         var res2 = stream.next().value;
         assert.equal(res2.lookup(y), "foo");
+    },
+
+    function conj_returns_the_conjunction_of_the_goals(){
+        var s = emptySub();
+        var goal1 = r.conso(x, "bar", list.pair("foo", "bar"));
+        var goal2 = r.heado(list.pair("foo", "bar"), y);
+        var conjGoal = r.conj(goal1, goal2);
+        var stream = conjGoal(s);
+        var res = stream.next().value;
+        assert.equal(res.lookup(x), "foo");
+        assert.equal(res.lookup(y), "foo");
+    },
+
+    function conj_returns_no_values_if_one_goal_fails(){
+        var s = emptySub();
+        var goal1 = r.conso("wibble", "bar", list.pair("foo", "bar"));
+        var goal2 = r.heado(list.pair("foo", "bar"), y);
+        var conjGoal = r.conj(goal1, goal2);
+        var stream = conjGoal(s);
+        var res = stream.next().value;
+        assert.equal(res, null);
     }
 
 ]);

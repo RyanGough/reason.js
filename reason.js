@@ -114,6 +114,25 @@ function disj(goal1, goal2){
     }
 }
 
+function conj(goal1, goal2){
+    return function* (s){
+        var stream1 = goal1(s);
+        do {
+            var res1 = stream1.next().value;
+            if (res1 !== null){
+                var stream2 = goal2(res1);
+                do {
+                    var res2 = stream2.next().value;
+                    if (res2 !== null){
+                        yield res2;
+                    }
+                } while (res2)
+            }
+        } while (res1)
+        return null;
+    }
+}
+
 /* 
  * export the module interface
  */
@@ -126,7 +145,8 @@ module.exports = {
     heado: heado,
     tailo: tailo,
     listo: listo,
-    disj: disj
+    disj: disj,
+    conj: conj
 };
 
 /* 
