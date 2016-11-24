@@ -148,23 +148,3 @@ module.exports = {
     disj: disj,
     conj: conj
 };
-
-/* 
- * some helper functions to make our life easier
- */
-
-function isObject(x){
-    return Object.prototype.toString.call(x) == "[object Object]"
-}
-
-function bothObjects(x, y){
-    return isObject(x) && isObject(y);
-}
-
-function isArray(x){
-    return Array.isArray(x);
-}
-
-function bothArrays(x, y){
-    return (isArray(x) && isArray(y));
-}
