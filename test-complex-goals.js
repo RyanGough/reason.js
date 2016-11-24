@@ -33,4 +33,13 @@ run([
         assert(res.length, 0);
     },
 
+    function disj_returns_the_disjunction_of_the_goals(){
+        var s = emptySub();
+        var goal1 = r.conso(x, "bar", list.pair("foo", "bar"), s);
+        var goal2 = r.heado(y, list.pair("foo", "bar"), s);
+        var disjGoal = r.disj(goal1, goal2);
+        var res = r.run(disjGoal, 2);
+        assert(res.length, 2);
+    }
+
 ]);

@@ -9,7 +9,7 @@ var isLogicVar = subs.isLogicVar;
  * unification
  */
 
-function unify(x, y, s){
+function _unify(x, y, s){
     var xLookup = s.lookup(x);
     var yLookup = s.lookup(y);
     if (xLookup === yLookup){
@@ -22,60 +22,70 @@ function unify(x, y, s){
         return s.extend(yLookup, xLookup);
     }
     if (list.isPair(xLookup) && list.isPair(yLookup)){
-        var headResult = unify(xLookup.head, yLookup.head, s);
+        var headResult = _unify(xLookup.head, yLookup.head, s);
         if (headResult === null){
             return null;
         }
-        return unify(xLookup.tail, yLookup.tail, headResult);
+        return _unify(xLookup.tail, yLookup.tail, headResult);
     }
     return null;
+}
+
+function* unify(x, y, s){
+    return _unify(x, y, s);
 };
 
 /* 
  * more goals 
  */
 
-function nullo(x, s){
-    return unify(x, list.emptyList, s);
+function* nullo(x, s){
+    return _unify(x, list.emptyList, s);
 }
 
-function conso(h, t, p, s){
-    return unify(list.pair(h, t), p, s);
+function* conso(h, t, p, s){
+    return _unify(list.pair(h, t), p, s);
 }
 
-function pairo(p, s){
-    return conso(fresh(), fresh(), p, s);
+function* pairo(p, s){
+    return _unify(list.pair(fresh(), fresh()), p, s);
 }
 
-function heado(l, x, s){
+function* heado(l, x, s){
     var headoFresh = fresh();
     var headoList = list.pair(x, headoFresh);
-    return unify(headoList, l, s);
+    return _unify(headoList, l, s);
 }
 
-function tailo(l, x, s){
+function* tailo(l, x, s){
     var tailoFresh = fresh();
     var tailoList = list.pair(tailoFresh, x);
-    return unify(tailoList, l, s);
+    return _unify(tailoList, l, s);
 }
 
 
 /*
- * goals that can return multiple values
+ * complex goals
  */
 
 function* listo(l, s){
-    var nullRes = nullo(l, s);
+    var nullRes = nullo(l, s).next().value;
     if (nullRes){
         yield nullRes;
     }
-    var headRes = pairo(l, s);
+    var headRes = pairo(l, s).next().value;
     if (headRes){
         var tail = fresh();
-        var tailRes = tailo(l, tail, headRes);
+        var tailRes = tailo(l, tail, headRes).next().value;
         yield * listo(tail, tailRes);
     }
     return null;
+}
+
+function* disj(goal1, goal2){
+    yield goal1.next().value;
+    yield goal2.next().value;
+    disj(goal1, goal2);
 }
 
 /*
@@ -108,6 +118,7 @@ module.exports = {
     heado: heado,
     tailo: tailo,
     listo: listo,
+    disj: disj,
     run: run
 };
 

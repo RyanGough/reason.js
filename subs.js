@@ -42,7 +42,7 @@ function emptySub(){
             return extendedSub;
         },
         reify: function(variable){
-            var lookup = this.lookup(x);
+            var lookup = this.lookup(variable);
             if (list.isPair(lookup)){
                 return "(" + this.reify(lookup.head) + ", " + this.reify(lookup.tail) + ")";
             }
