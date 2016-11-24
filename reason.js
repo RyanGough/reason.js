@@ -114,26 +114,6 @@ function disj(goal1, goal2){
     }
 }
 
-/*
- * run a goal and attempt to get the first n
- * results
- */
-
-function run(f, s, n){
-    var goal = f(s);
-    var results = [];
-    while (n--){
-        var r = goal.next();
-        results.push(r.value);
-        if (r.done){
-            break;
-        }
-    }
-    return results;
-}
-
-
-
 /* 
  * export the module interface
  */
@@ -146,8 +126,7 @@ module.exports = {
     heado: heado,
     tailo: tailo,
     listo: listo,
-    disj: disj,
-    run: run
+    disj: disj
 };
 
 /* 
