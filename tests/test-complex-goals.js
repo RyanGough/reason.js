@@ -10,6 +10,7 @@ var fresh = subs.fresh;
 var x = fresh();
 var y = fresh();
 
+console.log("running complex goal tests");
 run([
 
     function listo_can_return_multiple_values_when_tail_of_given_list_is_fresh(){

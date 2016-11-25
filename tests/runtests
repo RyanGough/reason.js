@@ -1,1 +1,6 @@
-node --harmony_destructuring $1
+if [ $1 == "all" ]
+    then
+        ls test*.js | xargs -n 1 node --harmony_destructuring
+    else
+        node --harmony_destructuring $1
+fi

@@ -10,6 +10,7 @@ var fresh = subs.fresh;
 var x1 = fresh();
 var x2 = fresh();
 
+console.log("running unification tests");
 run([
     function can_unify_fresh_var_with_value(){
         var s = emptySub();

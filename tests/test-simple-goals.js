@@ -10,6 +10,7 @@ var fresh = subs.fresh;
 var x = fresh();
 var y = fresh();
 
+console.log("running simple goal tests");
 run([
     function nullo_unifies_fresh_var_with_empty_list(){
         var s = emptySub();
