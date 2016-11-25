@@ -80,17 +80,22 @@ function tailo(l, x){
  * complex goals
  */
 
+// little helper to get next value from a stream
+function next(stream){
+    return stream.next().value;
+}
+
 function listo(l){
     return function* (s){
-        var nullRes = nullo(l)(s).next().value;
+        var nullRes = next(nullo(l)(s))
         if (nullRes){
             yield nullRes;
         }
-        var headRes = pairo(l)(s).next().value;
+        var headRes = next(pairo(l)(s))
         if (headRes){
             var tail = fresh();
-            var tailRes = (tailo(l, tail)(headRes)).next().value;
-            yield * (listo(tail)(tailRes));
+            var tailRes = next(tailo(l, tail)(headRes))
+            yield * listo(tail)(tailRes);
         }
         return null;
     }
@@ -101,11 +106,11 @@ function disj(goal1, goal2){
         var stream1 = goal1(s);
         var stream2 = goal2(s);
         do {
-            var res1 = stream1.next().value;
+            var res1 = next(stream1);
             if (res1.value !== null){
                 yield res1;
             }
-            var res2 = stream2.next().value;
+            var res2 = next(stream2);
             if (res2.value !== null){
                 yield res2;
             }
@@ -118,17 +123,18 @@ function conj(goal1, goal2){
     return function* (s){
         var stream1 = goal1(s);
         do {
-            var res1 = stream1.next().value;
+            var res1 = next(stream1)
             if (res1 !== null){
                 var stream2 = goal2(res1);
                 do {
-                    var res2 = stream2.next().value;
+                    var res2 = next(stream2);
                     if (res2 !== null){
                         yield res2;
                     }
                 } while (res2)
             }
         } while (res1)
+
         return null;
     }
 }

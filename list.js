@@ -14,13 +14,13 @@ function isPair(list){
     return list.hasOwnProperty("head") && list.hasOwnProperty("tail");
 }
 
+// some helper functions to create "proper" lists from arrays and to print lists
 
 function createList(list){
-    var [head,...tail] = list;
-    if (tail.length === 0){
-        return pair(head, emptyList);
+    if (list.length == 1){
+        return pair(list[0], emptyList);
     }
-    return pair(head, createList(tail));
+    return pair(list[0], createList(list.slice(1)));
 }
 
 function listItems(list, items){

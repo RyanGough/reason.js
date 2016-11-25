@@ -1,1 +1,1 @@
-node debug --harmony-destructuring $1
+node debug $1
