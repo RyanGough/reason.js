@@ -4,11 +4,9 @@ A JavaScript microKanren using generators to produce the substitution streams.
 
 ## Code Example
 
-In a node shell:
-
     r = require("./reason.js");
     s = require("./subs.js");
-    x = fresh();
+    x = s.fresh();
     goal = r.unify("foo", x);
     stream = goal(s.emptySub());
     stream.next().value.lookup(x);
